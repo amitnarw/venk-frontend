@@ -77,9 +77,7 @@ function App() {
           )}
         </div>
       ) : (
-        <div>
           <GameList />
-        </div>
       )}
     </div>
   );

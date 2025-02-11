@@ -24,7 +24,7 @@ const Modal = ({ selectedGame, setOpenModal }) => {
 
   const [message, setMessage] = useState('');
   const [socket, setSocket] = useState<Socket | null>(null);
-  handleUpdate({roomId: liveGameData?.data?.roomId, userId: userData?.userId, score: score})
+  // handleUpdate({roomId: liveGameData?.data?.roomId, userId: userData?.userId, score: score})
   const handleUpdate = ({ roomId, userId, score }: {roomId: string, userId: string, score: number}) => {
       socket?.emit("UPDATE_SCORES", { roomId, userId, score });
   };
@@ -68,6 +68,8 @@ const Modal = ({ selectedGame, setOpenModal }) => {
       setLiveGameData(data);
       if(data.status.step === 2){
         setStep(2);
+      } else if(data.status.step === 3){
+        setStep(3);
       }
     });
   }
@@ -125,7 +127,7 @@ const Modal = ({ selectedGame, setOpenModal }) => {
               </div>
               <p className="text-black text-2xl font-medium">Waiting for other players to join</p>
             </div>
-            :
+            : step === 2 ?
             (
               <div>
                 <ul className="mt-5">
@@ -135,7 +137,7 @@ const Modal = ({ selectedGame, setOpenModal }) => {
                         <p>Player {index + 1} score:</p> */}
                         <p className="text-black">Your score:</p>
                         <input
-                          className="w-full rounded-xl outline-none bg-gray-200 p-2 mb-2"
+                          className="w-full rounded-xl outline-none bg-gray-200 p-2 mb-2 text-black"
                           type="number"
                           value={score}
                           onChange={(e)=>setScore(Number(e.target.value))}
@@ -147,12 +149,24 @@ const Modal = ({ selectedGame, setOpenModal }) => {
                 {isLoading ? (
                   <MiniLoader />
                 ) : (
-                  <button className="rounded-xl bg-blue-400 hover:bg-blue-500 duration-300 w-full p-2 mt-5 cursor-pointer">
+                  <button className="rounded-xl bg-blue-400 hover:bg-blue-500 duration-300 w-full p-2 mt-5 cursor-pointer"
+                  onClick={()=>handleUpdate({roomId: liveGameData?.data?.roomId, userId: userData?.userId, score: score})}
+                  >
                     UPDATE
                   </button>
                 )}
               </div>
-            )}
+            )
+          :
+          (
+            <div className="w-full flex flex-col gap-4 items-center mt-5">
+              <h6 className="font-bold text-3xl text-red-500">GAME OVER</h6>
+              <button className="p-2 rounded-xl bg-blue-400 hover:bg-blue-500 duration-300 w-full cursor-pointer"
+              onClick={()=>setStep(0)}
+              >OK</button>
+            </div>
+          )
+          }
       </div>
     </div>
   );
