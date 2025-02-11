@@ -48,7 +48,7 @@ function App() {
       setIsLoading(false);
     }
   };
-console.log(isLoading, email, userData, '--')
+
   return (
     <div className="w-full h-screen flex flex-col gap-4 items-center justify-center">
       {!userData?.userId ? (

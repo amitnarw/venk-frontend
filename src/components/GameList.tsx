@@ -43,9 +43,9 @@ const GameList = () => {
     setIsLoading(false);
   };
 
-  console.log(data, "xxxxxxxxxxxxxx");
+
   return (
-    <div className="flex flex-col items-center justify-center max-w-1/2 m-auto gap-4 my-20">
+    <div className="flex flex-col items-center justify-center max-w-10/12 sm:max-w-8/12 lg:max-w-6/12 m-auto gap-4 py-20">
       {openModal && <Modal selectedGame={selectedGame} setOpenModal={setOpenModal} />}
       <h2 className="text-4xl font-bold mb-4">GAME LIST</h2>
       {isLoading ? (
@@ -67,7 +67,7 @@ const GameList = () => {
             />
             <div className="flex flex-col w-full px-6 justify-between">
               <div>
-                <h6 className="font-bold text-2xl">{item?.name}</h6>
+                <h6 className="font-bold text-2xl line-clamp-3">{item?.name}</h6>
                 <p>{item?.description}</p>
               </div>
               <div className="flex flex-row justify-between items-center">
