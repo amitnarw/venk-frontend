@@ -23,10 +23,16 @@ const Modal = ({ selectedGame, setOpenModal }) => {
   }, [])
 
   const [message, setMessage] = useState('');
+  const [timer, setTimer] = useState<{
+    roomId: string;
+    totalTime: number;
+    currentTime: number;
+    remainingTime: number;
+  } | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   // handleUpdate({roomId: liveGameData?.data?.roomId, userId: userData?.userId, score: score})
-  const handleUpdate = ({ roomId, userId, score }: {roomId: string, userId: string, score: number}) => {
-      socket?.emit("UPDATE_SCORES", { roomId, userId, score });
+  const handleUpdate = ({ roomId, userId, score }: { roomId: string, userId: string, score: number }) => {
+    socket?.emit("UPDATE_SCORES", { roomId, userId, score });
   };
 
   const connectOrAlert = () => {
@@ -44,9 +50,7 @@ const Modal = ({ selectedGame, setOpenModal }) => {
         Authorization: `Bearer ${userData?.accessToken}`
       }
     });
-    // socketConnection.on('welcome', (msg) => {
-    //   console.log('Message from server: ', msg);
-    // });
+
     socketConnection.on("connect_error", (error) => {
       console.error("Connection failed:", error.message);
       alert(error);
@@ -55,22 +59,31 @@ const Modal = ({ selectedGame, setOpenModal }) => {
     setSocket(socketConnection);
 
     socketConnection.emit('GET_AVAILABLE_ROOMS', { gameId: selectedGame?.gameId, duration: selectedGame?.duration, totalSlots: 2, bet: bet });
+
     socketConnection.on('FIELDS_ERROR', (data) => {
       alert(data?.message);
       setStep(0);
     });
+
+    socketConnection.on('GAME_TIMER', (data) => {
+      setTimer(data);
+    });
+
     socketConnection.on('BALANCE_ERROR', (data) => {
       alert(data?.message);
       setStep(0);
     });
+
     socketConnection.on('GET_AVAILABLE_ROOMS', (data) => {
-      console.log(data, "DATA");
       setLiveGameData(data);
-      if(data.status.step === 2){
+      if (data.status.step === 2) {
         setStep(2);
-      } else if(data.status.step === 3){
-        setStep(3);
       }
+    });
+
+    socketConnection.on('MATCH_OVER', (data) => {
+      setLiveGameData(data);
+      setStep(3);
     });
   }
 
@@ -93,6 +106,20 @@ const Modal = ({ selectedGame, setOpenModal }) => {
           <p>Total players: {selectedGame?.totalSlots}</p>
           <p>Duration of game: {selectedGame?.duration}ms</p>
         </div>
+
+        {timer && timer.currentTime && timer.totalTime &&
+          <div className="flex items-center justify-center">
+            <div className="m-2 w-15 h-15 rounded-full bg-black flex items-center justify-center">
+              <span className="text-white">
+                {timer.remainingTime >= 60000
+                  ? `${Math.floor(timer.remainingTime / 60000)}:${Math.floor((timer.remainingTime % 60000) / 1000).toString().padStart(2, '0')}`
+                  : `${Math.floor(timer.remainingTime / 1000)}`
+                }
+              </span>
+
+            </div>
+          </div>
+        }
         {step === 0 ? (
           <div>
             <p className="text-black mt-5 font-medium">Select a bet:</p>
@@ -128,45 +155,46 @@ const Modal = ({ selectedGame, setOpenModal }) => {
               <p className="text-black text-2xl font-medium">Waiting for other players to join</p>
             </div>
             : step === 2 ?
-            (
-              <div>
-                <ul className="mt-5">
-                  {/* {Array.from({ length: selectedGame.totalSlots }, (_, index) => {
+              (
+                <div>
+                  <ul className="mt-5">
+                    {/* {Array.from({ length: selectedGame.totalSlots }, (_, index) => {
                     return ( */}
-                      {/* <li key={index} className="text-black">
+                    {/* <li key={index} className="text-black">
                         <p>Player {index + 1} score:</p> */}
-                        <p className="text-black">Your score:</p>
-                        <input
-                          className="w-full rounded-xl outline-none bg-gray-200 p-2 mb-2 text-black"
-                          type="number"
-                          value={score}
-                          onChange={(e)=>setScore(Number(e.target.value))}
-                        ></input>
-                      {/* </li> */}
+                    <p className="text-black">Your score:</p>
+                    <input
+                      className="w-full rounded-xl outline-none bg-gray-200 p-2 mb-2 text-black"
+                      type="number"
+                      value={score}
+                      onChange={(e) => setScore(Number(e.target.value))}
+                    ></input>
+                    {/* </li> */}
                     {/* );
                   })} */}
-                </ul>
-                {isLoading ? (
-                  <MiniLoader />
-                ) : (
-                  <button className="rounded-xl bg-blue-400 hover:bg-blue-500 duration-300 w-full p-2 mt-5 cursor-pointer"
-                  onClick={()=>handleUpdate({roomId: liveGameData?.data?.roomId, userId: userData?.userId, score: score})}
-                  >
-                    UPDATE
-                  </button>
-                )}
-              </div>
-            )
-          :
-          (
-            <div className="w-full flex flex-col gap-4 items-center mt-5">
-              <h6 className="font-bold text-3xl text-red-500">GAME OVER</h6>
-              <button className="p-2 rounded-xl bg-blue-400 hover:bg-blue-500 duration-300 w-full cursor-pointer"
-              onClick={()=>setStep(0)}
-              >OK</button>
-            </div>
-          )
-          }
+                  </ul>
+                  {isLoading ? (
+                    <MiniLoader />
+                  ) : (
+                    <button className="rounded-xl bg-blue-400 hover:bg-blue-500 duration-300 w-full p-2 mt-5 cursor-pointer"
+                      onClick={() => handleUpdate({ roomId: liveGameData?.data?.roomId, userId: userData?.userId, score: score })}
+                    >
+                      UPDATE
+                    </button>
+                  )}
+                </div>
+              )
+              : step === 3 ?
+                (
+                  <div className="w-full flex flex-col gap-4 items-center mt-5">
+                    <h6 className="font-bold text-3xl text-red-500">GAME OVER</h6>
+                    <button className="p-2 rounded-xl bg-blue-400 hover:bg-blue-500 duration-300 w-full cursor-pointer"
+                      onClick={() => setStep(0)}
+                    >OK</button>
+                  </div>
+                )
+                : ""
+        }
       </div>
     </div>
   );

@@ -69,53 +69,55 @@ const GameList = () => {
           className="p-2 rounded-full bg-red-500 hover:bg-red-500/70 duration-300 text-white cursor-pointer"
           onClick={loginAgain}
         >
-         <FiLogOut /> 
+          <FiLogOut />
         </button>
       </div>
       {error && (
-          <p className="text-red-300">{error}</p>
+        <p className="text-red-300">{error}</p>
       )}
       {isLoading ? (
         <MiniLoader />
       ) : (
-        data.map((item, index) => (
-          <li
-            key={index}
-            className="flex flex-row list-none p-2 w-full bg-black/60 rounded-2xl hover:bg-black/40 cursor-pointer duration-300"
-            onClick={() => {
-              setOpenModal(true);
-              setSelectedGame(item);
-            }}
-          >
-            <img
-              src={item?.image}
-              alt="img"
-              className="w-32 h-32 object-cover rounded-xl"
-            />
-            <div className="flex flex-col w-full px-6 justify-between">
-              <div>
-                <h6 className="font-bold text-2xl line-clamp-3">
-                  {item?.name}
-                </h6>
-                <p className="line-clamp-2">{item?.description}</p>
+        <div className="h-96 flex flex-col gap-5">
+          {data.map((item, index) => (
+            <li
+              key={index}
+              className="flex flex-row list-none p-2 w-full bg-black/60 rounded-2xl hover:bg-black/40 cursor-pointer duration-300"
+              onClick={() => {
+                setOpenModal(true);
+                setSelectedGame(item);
+              }}
+            >
+              <img
+                src={item?.image}
+                alt="img"
+                className="w-32 h-32 object-cover rounded-xl"
+              />
+              <div className="flex flex-col w-full px-6 justify-between">
+                <div>
+                  <h6 className="font-bold text-2xl line-clamp-3">
+                    {item?.name}
+                  </h6>
+                  <p className="line-clamp-2">{item?.description}</p>
+                </div>
+                <div className="flex flex-row justify-between items-center">
+                  <p className="flex flex-row gap-2 items-center">
+                    <span>
+                      <FaUserCircle />
+                    </span>
+                    <span>{item?.totalSlots}</span>
+                  </p>
+                  <p className="flex flex-row gap-2 items-center">
+                    <span>
+                      <FaClock />
+                    </span>
+                    <span>{item?.duration}</span>
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-row justify-between items-center">
-                <p className="flex flex-row gap-2 items-center">
-                  <span>
-                    <FaUserCircle />
-                  </span>
-                  <span>{item?.totalSlots}</span>
-                </p>
-                <p className="flex flex-row gap-2 items-center">
-                  <span>
-                    <FaClock />
-                  </span>
-                  <span>{item?.duration}</span>
-                </p>
-              </div>
-            </div>
-          </li>
-        ))
+            </li>
+          ))}
+        </div>
       )}
     </div>
   );
